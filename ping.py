@@ -16,6 +16,7 @@ def ping(cmdArgs, ip):
     cmd = ['ping']
     cmd.extend(cmdArgs)
     cmd.append(ip)
+    print(f"Ping: {cmd}")
     subprocess.check_call(cmd,stdout=DEVNULL)
     return
 
@@ -66,7 +67,9 @@ def range_command(job_q, results_q, action):
                 hostname = job + " : " + get_hostname(job)
                 results_q.put(hostname)
         except:
-            pass
+            print("Cmd action failed")
+            raise
+            #pass
 
 def process_creator(action, jobResults):
     # Change from range scanner to process range creator
