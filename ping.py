@@ -16,7 +16,7 @@ def ping(cmdArgs, ip):
     cmd = ['ping']
     cmd.extend(cmdArgs)
     cmd.append(ip)
-    subprocess.check_call(cmd,stdout=DEVNULL)
+    subprocess.check_call(cmd,stderr=DEVNULL, stdout=DEVNULL)
     return
 
 def get_hostname(ip):
@@ -34,23 +34,6 @@ def check_answer(answer):
         return True
     else:
         return False
-
-def get_addr_range():
-    addrRange = input("[+] Please enter the address range (example: 192.160.0.0/12 or 192.168.1.0/24): ")
-    try:
-        allIps=[str(ip)for ip in ipaddress.IPv4Network(addrRange)]
-        if len(allIps) >= 1000:
-            while True:
-                answer = input(f"[+] You're about to ping {len(allIps)} addresses, are you sure you want to continue? y/n: " )
-                if check_answer(answer)==True:
-                    print("Okay but be prepared to wait awhile...")
-                    break
-                else:
-                    return False
-        return allIps
-    except:
-        print("Incorrect IP address range")
-    return False
 
 def range_command(job_q, results_q, action):
     while True:
@@ -76,22 +59,15 @@ def process_creator(action, jobResults):
     jobs = multiprocessing.Queue()
     results = multiprocessing.Queue()
     if action=="ping range":
-        ipRange = get_addr_range()
-        if ipRange==False:
-            return ipRange
-        poolSize = len(ipRange)
-        if poolSize>=256:
-            poolSize=255
-        print(poolSize)
+        poolSize = 255
     elif action=="hostname range":
         pingSuccess=True
         poolSize=len(jobResults)
-
     
     pool = [ multiprocessing.Process(target=range_command, args=(jobs, results, action)) for i in range(poolSize) ]
     
     start_proc(pool)
-    set_proc_data(pingSuccess, jobs, pool, ipRange, jobResults)
+    set_proc_data(pingSuccess, jobs, pool, jobResults)
     join_proc(pool)
     jobResults=get_proc_data(pingSuccess, results)
     terminate_proc(pool)
@@ -105,11 +81,10 @@ def start_proc(pool):
     for p in pool:
             p.start()
 
-def set_proc_data(pingSuccess, jobs, pool, ips, pingedIps):
+def set_proc_data(pingSuccess, jobs, pool, pingedIps):
     if pingSuccess==False:
-        for i in range(1,len(ips)):
-            print(f"Putting IP: {ips[i]}")
-            jobs.put(ips[i])
+        for i in range(1,255):
+            jobs.put('192.168.1.{0}'.format(i))
     elif pingSuccess:
         for i in pingedIps:
             jobs.put(i)
