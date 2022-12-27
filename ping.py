@@ -43,6 +43,7 @@ def get_addr_range():
             while True:
                 answer = input(f"[+] You're about to ping {len(allIps)} addresses, are you sure you want to continue? y/n: " )
                 if check_answer(answer)==True:
+                    print("Okay but be prepared to wait awhile...")
                     break
                 else:
                     return False
