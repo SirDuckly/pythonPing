@@ -5,9 +5,6 @@ import subprocess
 # cmd imports
 import os
 
-# Network imports
-import ipaddress
-
 # Goals:
 # Ping scan off given range
 
@@ -42,7 +39,7 @@ def range_command(job_q, results_q, action):
             break
         try:
             if action=="ping range": # Ping IP range
-                cmdArgs = ['-c1', '-W1']
+                cmdArgs = ['-c1', '-W2']
                 ping(cmdArgs, job)
                 results_q.put(job)
             elif action=="hostname range": # Ping IP range and hostname
