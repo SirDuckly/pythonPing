@@ -1,6 +1,7 @@
 # Multiprocess imports
 import multiprocessing
 import subprocess
+import queue
 
 import time
 
@@ -41,9 +42,8 @@ def check_answer(answer):
 def get_addr_range():
     addrRange = input("[+] Please enter the address range (example: 192.160.0.0/12 or 192.168.1.0/24): ")
     ipAddresses= []
-    for ip in IPNetwork('192.168.0.0/16'):
+    for ip in IPNetwork('192.168.1.1'):
         ipAddresses.append('%s' % ip)
-    print(f'IP list = {ipAddresses}')
     return ipAddresses
 
     """"
@@ -75,10 +75,10 @@ def range_command(job_q, results_q, action):
                     hostname = job + " : " + get_hostname(job)
                     results_q.put(hostname)
             except:
-                print("Cmd action failed")
+                print(f"Cmd action failed for job: {job}")
                 raise
                 #pass
-        except job_q.Empty:
+        except queue.Empty():
             break
 
 def process_creator(action, jobResults):
@@ -90,12 +90,14 @@ def process_creator(action, jobResults):
     results = multiprocessing.Queue()
     if action=="ping range":
         ipRange = get_addr_range()
-        print(f'IP RANGE: {ipRange}')
+        #print(f'IP RANGE: {ipRange} ew')
         if ipRange==False:
             return ipRange
-        poolSize = len(ipRange)
+        poolSize=8
+        """poolSize = len(ipRange)
         if poolSize>=256:
             poolSize=255
+        """
         print(poolSize)
     elif action=="hostname range":
         pingSuccess=True
