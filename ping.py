@@ -9,7 +9,7 @@ import time
 import os
 
 # Network imports
-from netaddr import IPNetwork
+from netaddr import IPNetwork, iter_iprange
 
 # Goals:
 # Ping scan off given range
@@ -37,32 +37,43 @@ def get_hostname(ip):
     except:
         return "Hostname not found"
 
-def check_answer(answer):
-    if answer=="n":
-        return False
-    elif answer=="y":
-        return True
-    else:
-        return False
+def check_answer(question):
+    while True:
+        answer=input(question)
+        if answer=="n":
+            return False
+        elif answer=="y":
+            return True
+        else:
+            print("[+] Incorrect input, please input y/n")
 
 def get_addr_range():
     while True:
         addrRange = input("[+] Please enter the address range (example: 192.160.0.0/12 or 192.168.1.0/24): ")
+        """"
+        if addrRange.find('-')!=-1:
+            values=addrRange.split('.')
+            ipRange=values[3].split('-')
+            ip=[values[0]+"."+values[1]+"."+values[2]+"."+ipRange[0], values[0]+"."+values[1]+"."+values[2]+"."+values[1]]
+            ipStart='.'.join(values[0:3])
+            ipStart+= '.'+ipRange[0]
+        """
         try:
             IPNetwork(addrRange)
             ipAddresses= []
             for ip in IPNetwork(addrRange):
                 ipAddresses.append('%s' % ip)
             if len(ipAddresses)>=1000:
-                answer = input(f"[+] You're about to ping {len(ipAddresses)} addresses, are you sure you want to continue? y/n: " )
-                if check_answer(answer)=="y":
+                question = "[+] You're about to ping " + str(len(ipAddresses)) + " addresses, are you sure you want to continue? y/n: "
+                if check_answer(question)==True:
                     print("Okay but be prepared to wait awhile...")
-                    break
+                    pass
                 else:
                     return False
             return ipAddresses
         except:
-            break
+            print("[+] Incorrect IP address/ address range!")
+            pass
 
 def range_command(job_q, results_q, action):
     while True:
@@ -172,7 +183,8 @@ def job_handler(jobRef):
         elif action=="hostname range":
             jobResults=process_creator(action, jobResults)
         elif action=="output":
-            print(f"Found {len(jobResults)} active IP's:\n")
+            jobResults.sort()
+            print(f"\nFound {len(jobResults)} active IP's:\n")
             for i in jobResults:
                 print(f" - {i}")
         if jobResults==False:
@@ -196,15 +208,18 @@ def main_menu():
         elif choice=="0":
             print("Goodbye!")
             break
+        elif choice=="4":
+            display_menu()
         else:
             print("Invalid choice!")
 
 def display_menu():
     print("""
     Ping program\n
-    1. Ping scan of 192.168.1.0/24
-    2. Ping scan of 192.168.1.0/24 with hostnames
-    3. Test func\n 
+    1. Ping scan of address range
+    2. Ping scan of address range with hostnames
+    3. Test func
+    4. Display menu\n
     0. Exit\n""")
 
 if __name__ == '__main__':
