@@ -104,10 +104,6 @@ def process_creator(action, jobResults):
         if ipRange==False:
             return ipRange
         poolSize=100
-        """poolSize = len(ipRange)
-        if poolSize>=256:
-            poolSize=255
-        """
     elif action=="hostname range":
         pingSuccess=True
         #print(f'Job results: {len(jobResults)} and {jobResults}')
@@ -190,11 +186,17 @@ def test_func():
     """"
     ip = "192.168.1.205"
     get_hostname(ip)"""
-    output=subprocess.check_output(['nslookup', "192.168.1.1"])
-    print(output)
-    host=str(output).split("\\tname = ")
-    host=host[1][0:-6]
-    print(host)
+    """"
+    if addrRange.find('-')!=-1:
+        values=addrRange.split('.')
+        ipRange=values[3].split('-')
+        ip=[values[0]+"."+values[1]+"."+values[2]+"."+ipRange[0], values[0]+"."+values[1]+"."+values[2]+"."+values[1]]
+        ipStart='.'.join(values[0:3])
+        ipStart+= '.'+ipRange[0]
+    """
+    ip_list = list(iter_iprange('192.168.2.1', '192.168.2.14'))
+    print(ip_list)
+
 
 def main_menu():
     display_menu()
