@@ -29,13 +29,13 @@ def ping(cmdArgs, ip):
 def get_hostname(ip):
     DEVNULL = open(os.devnull,'w')
     try:
-        output=subprocess.check_output(['host', ip])
-        # Ugly way to extract the hostname from the output
-        host=str(output).split(" domain name pointer ")
-        host=host[1][0:-4]
-        return host
+        output=subprocess.check_output(['nslookup', ip])
     except:
         return "Hostname not found"
+    # Ugly way to extract the hostname from the output
+    host=str(output).split("\\tname = ")
+    host=host[1][0:-6]
+    return host
 
 def check_answer(question):
     while True:
@@ -60,20 +60,20 @@ def get_addr_range():
         """
         try:
             IPNetwork(addrRange)
-            ipAddresses= []
-            for ip in IPNetwork(addrRange):
-                ipAddresses.append('%s' % ip)
-            if len(ipAddresses)>=1000:
-                question = "[+] You're about to ping " + str(len(ipAddresses)) + " addresses, are you sure you want to continue? y/n: "
-                if check_answer(question)==True:
-                    print("Okay but be prepared to wait awhile...")
-                    pass
-                else:
-                    return False
-            return ipAddresses
         except:
             print("[+] Incorrect IP address/ address range!")
             pass
+        ipAddresses= []
+        for ip in IPNetwork(addrRange):
+            ipAddresses.append('%s' % ip)
+        if len(ipAddresses)>=1000:
+            question = "[+] You're about to ping " + str(len(ipAddresses)) + " addresses, are you sure you want to continue? y/n: "
+            if check_answer(question)==True:
+                print("Okay but be prepared to wait awhile...")
+                pass
+            else:
+                return False
+        return ipAddresses
 
 def range_command(job_q, results_q, action):
     while True:
@@ -83,18 +83,14 @@ def range_command(job_q, results_q, action):
                 break
         except:
             break
-        try:
-            if action=="ping range": # Ping IP range
-                cmdArgs = ['-c1', '-W2']
-                pingSuccess = ping(cmdArgs, job)
-                if pingSuccess!=False:
-                    results_q.put(pingSuccess)
-            elif action=="hostname range": # Ping IP range and hostname
-                hostname = job + " : " + get_hostname(job)
-                results_q.put(hostname)
-        except:
-            raise
-            #pass
+        if action=="ping range": # Ping IP range
+            cmdArgs = ['-c1', '-W2']
+            pingSuccess = ping(cmdArgs, job)
+            if pingSuccess!=False:
+                results_q.put(pingSuccess)
+        elif action=="hostname range": # Ping IP range and hostname
+            hostname = job + " : " + get_hostname(job)
+            results_q.put(hostname)
 
 def process_creator(action, jobResults):
     # Change from range scanner to process range creator
@@ -187,13 +183,20 @@ def job_handler(jobRef):
             print(f"\nFound {len(jobResults)} active IP's:\n")
             for i in jobResults:
                 print(f" - {i}")
+            print("")
         if jobResults==False:
             print(f"Job failed")
             return
 
 def test_func():
+    """"
     ip = "192.168.1.205"
-    get_hostname(ip)
+    get_hostname(ip)"""
+    output=subprocess.check_output(['nslookup', "192.168.1.1"])
+    print(output)
+    host=str(output).split("\\tname = ")
+    host=host[1][0:-6]
+    print(host)
 
 def main_menu():
     display_menu()
@@ -204,7 +207,7 @@ def main_menu():
         elif choice=="2":
             job_handler(2)
         elif choice=="3":
-            print(multiprocessing.cpu_count())  
+            test_func()
         elif choice=="0":
             print("Goodbye!")
             break
