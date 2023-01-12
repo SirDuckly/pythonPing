@@ -120,7 +120,7 @@ def process_creator(action, jobResults):
     start_proc(pool)
     set_proc_data(pingSuccess, jobs, pool, ipRange)
     join_proc(pool)
-    jobResults=get_proc_data(pingSuccess, results)
+    jobResults=get_proc_results(results)
     terminate_proc(pool)
     if jobResults==False:
         print("Getting results failed")
@@ -139,7 +139,6 @@ def set_proc_data(pingSuccess, jobs, pool, ips):
     elif pingSuccess:
         for i in ips:
             jobs.put(i)
-
     for p in pool:
         jobs.put(None)
 
@@ -147,17 +146,12 @@ def join_proc(pool):
     for p in pool:
         p.join()
 
-def get_proc_data(pingSuccess, results):
-    if pingSuccess==False and not results.empty():
-        pingedIps = []
+def get_proc_results(results):
+    if not results.empty():
+        getResults = []
         while not results.empty():
-            pingedIps.append(results.get())
-        return pingedIps
-    elif pingSuccess==True and not results.empty():
-        hostnames = []
-        while not results.empty():
-            hostnames.append(results.get())
-        return hostnames
+            getResults.append(results.get())
+        return getResults
     return False
     
 def terminate_proc(pool):
@@ -165,6 +159,7 @@ def terminate_proc(pool):
         p.terminate()
 
 def job_handler(jobRef):
+    startTime=time.process_time_ns()
     jobs = {
         1 : ["ping range",  "output"],
         2 : ["ping range", "hostname range", "output"]
@@ -187,6 +182,9 @@ def job_handler(jobRef):
         if jobResults==False:
             print(f"Job failed")
             return
+    endTime=time.process_time_ns()
+    jobTime=str(endTime-startTime)
+    print(f"Job time took {jobTime[0]}.{jobTime[1:5]} seconds\n")
 
 def test_func():
     """"
@@ -218,12 +216,12 @@ def main_menu():
 
 def display_menu():
     print("""
-    Ping program\n
-    1. Ping scan of address range
-    2. Ping scan of address range with hostnames
-    3. Test func
-    4. Display menu\n
-    0. Exit\n""")
+Ping program\n
+1. Ping scan of address range
+2. Ping scan of address range with hostnames
+3. Test func
+4. Display menu\n
+0. Exit\n""")
 
 if __name__ == '__main__':
     main_menu()
