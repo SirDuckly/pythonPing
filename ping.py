@@ -49,21 +49,18 @@ def check_answer(question):
 
 def get_addr_range():
     while True:
+        ipAddresses= []
         addrRange = input("[+] Please enter the address range (example: 192.160.0.0/12 or 192.168.1.0/24): ")
-        """"
         if addrRange.find('-')!=-1:
-            values=addrRange.split('.')
-            ipRange=values[3].split('-')
-            ip=[values[0]+"."+values[1]+"."+values[2]+"."+ipRange[0], values[0]+"."+values[1]+"."+values[2]+"."+values[1]]
-            ipStart='.'.join(values[0:3])
-            ipStart+= '.'+ipRange[0]
-        """
+            ips=addrRange.split('-')
+            for ip in list(iter_iprange(ips[0], ips[1])):
+                ipAddresses.append('%s' % ip)
+            return ipAddresses
         try:
             IPNetwork(addrRange)
         except:
             print("[+] Incorrect IP address/ address range!")
             pass
-        ipAddresses= []
         for ip in IPNetwork(addrRange):
             ipAddresses.append('%s' % ip)
         if len(ipAddresses)>=1000:
@@ -193,10 +190,13 @@ def test_func():
         ip=[values[0]+"."+values[1]+"."+values[2]+"."+ipRange[0], values[0]+"."+values[1]+"."+values[2]+"."+values[1]]
         ipStart='.'.join(values[0:3])
         ipStart+= '.'+ipRange[0]
-    """
     ip_list = list(iter_iprange('192.168.2.1', '192.168.2.14'))
     print(ip_list)
-
+    ipAddresses= []
+    for ip in list(iter_iprange('192.168.2.1', '192.168.2.14')):
+        ipAddresses.append('%s' % ip)
+    print(ipAddresses)
+    """
 
 def main_menu():
     display_menu()
